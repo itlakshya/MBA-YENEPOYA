@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
-import { Poppins, Inter } from "next/font/google";
+import { Montserrat } from "next/font/google";
 import { GoogleTagManager } from '@next/third-parties/google';
 import Script from "next/script";
 import "./globals.css";
 
-const poppins = Poppins({
+const montserratHeading = Montserrat({
   variable: "--font-heading",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800", "900"],
 });
 
-const inter = Inter({
+const montserratSans = Montserrat({
   variable: "--font-sans",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800"],
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   title: "Global MBA Excellence | Transform Your Career",
   description: "Join an industry-integrated online MBA in Finance and accounting by Yenepoya University.",
   icons: {
-    icon: '/favicon.png',
+    icon: '/favicon.svg',
   },
 };
 
@@ -37,7 +37,7 @@ export default function RootLayout({
         strategy="afterInteractive"
       />
       <body
-        className={`${poppins.variable} ${inter.variable} antialiased`}
+        className={`${montserratHeading.variable} ${montserratSans.variable} antialiased`}
       >
         <noscript>
           <iframe 

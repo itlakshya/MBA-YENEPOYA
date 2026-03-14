@@ -164,16 +164,16 @@ const CounsellingModal = ({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-brand-primary mb-2 uppercase tracking-wider font-heading">Current Status / Work Experience</label>
+                  <label className="block text-xs font-bold text-brand-primary mb-2 uppercase tracking-wider font-heading">Select Experience</label>
                   <select 
                     value={experience}
                     onChange={(e) => setExperience(e.target.value)}
                     className="w-full px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:ring-2 focus:ring-brand-primary focus:bg-white outline-none transition font-medium appearance-none font-sans"
                   >
                     <option>Graduate and Above - No Experience</option>
-                    <option>0-1 Yr Experience</option>
-                    <option>2-5 Yrs Experience</option>
-                    <option>5+ Yrs Experience</option>
+                    <option>0-1 Yr</option>
+                    <option>2-5 Yrs</option>
+                    <option>5+ Yrs</option>
                   </select>
                 </div>
                 <button 
@@ -244,7 +244,7 @@ const CounsellingModal = ({
 // Navbar
 const Navbar = ({ onOpenModal }: { onOpenModal: () => void }) => {
   const phoneNumber = "919061277777";
-  const message = "Im interested in MBA,need more details.";
+  const message = "I’m interested in Yenepoya MBA, need more details.";
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
 
   return (
@@ -253,10 +253,14 @@ const Navbar = ({ onOpenModal }: { onOpenModal: () => void }) => {
         <div className="flex justify-between items-center h-20 sm:h-24">
           {/* Left Side: Logos */}
           <div className="flex items-center space-x-2 sm:space-x-5 min-w-0">
-            <div className="flex flex-col leading-none shrink-0 font-heading">
-              <span className="text-base sm:text-xl font-black text-brand-primary uppercase tracking-tighter">Yenepoya</span>
-              <span className="text-[7px] sm:text-[10px] font-extrabold text-gray-400 uppercase tracking-widest">University</span>
-            </div>
+            <Image
+              src="/favicon.svg"
+              alt="Yenepoya University logo"
+              width={170}
+              height={48}
+              className="h-10 sm:h-12 w-auto shrink-0"
+              priority
+            />
           </div>
 
           {/* Right Side CTA */}
@@ -439,18 +443,22 @@ const Accreditations = () => (
 );
 
 const Stats = () => (
-  <section className="py-8 sm:py-16 bg-white border-b border-gray-100 relative overflow-hidden">
+  <section className="py-8 sm:py-14 bg-white border-b border-gray-100 relative overflow-hidden">
     <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 relative z-10">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-y-10 gap-x-6 sm:gap-12 text-center">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6 items-stretch">
         {[
           { label: 'UGC entitled', value: 'Category-I' },
           { label: 'Yenepoya network', value: 'Global reach' },
           { label: 'Academic excellence', value: 'Industry led' },
           { label: 'Career support', value: '100% Placement' }
         ].map((stat, i) => (
-          <div key={i} className="group">
-            <div className="text-2xl sm:text-5xl font-semibold text-slate-900 mb-2 tracking-tighter font-heading group-hover:scale-105 transition duration-500 leading-tight">{stat.value}</div>
-            <div className="text-slate-500 font-medium text-[11px] sm:text-sm tracking-wide">{stat.label}</div>
+          <div key={i} className="group h-full min-h-[190px] sm:min-h-[210px] bg-white border border-gray-100 rounded-2xl sm:rounded-[2rem] px-6 py-7 sm:px-7 sm:py-8 text-center shadow-sm hover:shadow-md transition duration-300 flex flex-col items-center justify-center">
+            <div className="text-[2.1rem] sm:text-[2.55rem] font-semibold text-slate-900 mb-4 tracking-[-0.04em] font-heading leading-[1.12] max-w-[11ch]">
+              {stat.value}
+            </div>
+            <div className="text-slate-500 font-medium text-xs sm:text-[13px] tracking-[0.08em] uppercase leading-snug">
+              {stat.label}
+            </div>
           </div>
         ))}
       </div>
@@ -602,42 +610,42 @@ const Curriculum = ({ onOpenModal }: { onOpenModal: () => void }) => {
 };
 
 const FeeStructure = ({ onOpenModal }: { onOpenModal: () => void }) => (
-  <section className="py-12 sm:py-24 bg-white relative overflow-hidden">
-    <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 relative z-10">
-      <div className="flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-24">
-        <div className="text-center lg:text-left max-w-xl">
-          <h2 className="text-3xl sm:text-5xl font-black text-slate-900 mb-6 tracking-tight font-heading relative inline-block">
+  <section className="py-10 sm:py-14 bg-white relative overflow-hidden">
+    <div className="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8 relative z-10">
+      <div className="grid lg:grid-cols-[minmax(0,1fr)_380px] items-center gap-8 sm:gap-10 lg:gap-12">
+        <div className="text-center lg:text-left max-w-xl lg:max-w-[520px] mx-auto lg:mx-0">
+          <h2 className="text-3xl sm:text-4xl lg:text-[3rem] font-black text-slate-900 mb-5 tracking-tight font-heading relative inline-block">
             Fee Structure
             <div className="absolute -bottom-2 left-0 w-12 h-1 bg-brand-secondary rounded-full"></div>
           </h2>
-          <p className="text-gray-500 text-lg font-medium font-sans leading-relaxed mb-8">
+          <p className="text-slate-500 text-base sm:text-lg font-medium font-sans leading-[1.65] max-w-[500px] lg:max-w-none">
             A globally recognized MBA in Finance and Accounting that accelerates your career at a fee designed to deliver maximum value.
           </p>
         </div>
 
-        <div className="w-full lg:max-w-md">
-          <div className="bg-gray-50 rounded-[3rem] shadow-xl border border-gray-100 overflow-hidden group hover:border-brand-secondary/30 transition-all duration-500">
-            <div className="p-10 sm:p-12 text-center">
-              <div className="inline-flex items-center justify-center px-6 py-2 bg-brand-primary/10 rounded-full text-brand-primary font-black text-xs tracking-widest mb-8">
+        <div className="w-full max-w-sm mx-auto lg:mx-0 lg:justify-self-end">
+          <div className="bg-white rounded-[2rem] shadow-[0_24px_70px_rgba(148,163,184,0.2)] border border-sky-100 overflow-hidden group hover:border-brand-secondary/30 transition-all duration-500">
+            <div className="p-7 sm:p-8 text-center">
+              <div className="inline-flex items-center justify-center px-5 py-2.5 bg-brand-primary/10 rounded-full text-brand-primary font-black text-[11px] tracking-[0.14em] mb-6">
                 Total Program Fee
               </div>
-              <div className="flex items-center justify-center mb-4">
-                <span className="text-3xl font-black text-slate-900 mr-2">₹</span>
-                <span className="text-6xl sm:text-8xl font-black text-slate-900 tracking-tighter">56,000</span>
+              <div className="flex items-start justify-center mb-3">
+                <span className="text-[30px] font-black text-slate-900 mr-2 mt-2">₹</span>
+                <span className="text-6xl sm:text-[4.25rem] font-black text-slate-900 tracking-[-0.05em] leading-none">56,000</span>
               </div>
-              <p className="text-gray-400 font-bold tracking-[0.2em] text-xs mb-4">Tuition Fee, Exam Fee</p>
-              <p className="text-gray-400 text-[10px] mb-10 italic">*Terms & Conditions Apply</p>
-              
+              <p className="text-slate-400 font-bold tracking-[0.14em] text-xs sm:text-[13px] mb-2 uppercase">Tuition Fee, Exam Fee</p>
+              <p className="text-slate-400 text-[11px] mb-6 italic">*Terms & Conditions Apply</p>
+               
               <button 
                 onClick={() => {
                   sendGTMEvent({ event: 'button_click', button_name: 'fee_speak_to_counselor' });
                   onOpenModal();
                 }}
-                className="w-full px-8 sm:px-10 py-4 sm:py-5 bg-brand-secondary text-white rounded-xl sm:rounded-2xl font-black text-base sm:text-lg hover:bg-sky-400 transition-all shadow-2xl shadow-sky-500/20 tracking-tight font-heading"
+                className="w-full px-8 sm:px-10 py-4 bg-brand-secondary text-white rounded-2xl font-black text-base sm:text-lg hover:bg-sky-400 transition-all shadow-2xl shadow-sky-500/20 tracking-tight font-heading"
               >
                 Speak to counselor
               </button>
-              <p className="mt-2 text-[10px] text-gray-400 font-bold uppercase tracking-widest">Connect with experts</p>
+              <p className="mt-3 text-[10px] text-slate-400 font-bold uppercase tracking-[0.14em]">Connect with experts</p>
             </div>
           </div>
         </div>
@@ -690,10 +698,18 @@ export default function Home() {
     setModalConfig(prev => ({ ...prev, isOpen: false }));
   };
 
-  // Hiring Network logos
+  // Hiring partner logos
   const hiringLogos = [
-    "J.P. Morgan", "Barclays", "Amazon", "Google", "Goldman Sachs", 
-    "Morgan Stanley", "HSBC", "Deutsche Bank", "Citibank", "UBS"
+    { name: 'Amazon', src: '/amazon.webp' },
+    { name: 'Barclays', src: '/barclays.webp' },
+    { name: 'Citi Bank', src: '/citi bank.webp' },
+    { name: 'Deutsche Bank', src: '/deutsche bank.png' },
+    { name: 'Goldman Sachs', src: '/Goldman_Sachs.webp' },
+    { name: 'Google', src: '/google.webp' },
+    { name: 'HSBC', src: '/HSBC.webp' },
+    { name: 'JP Morgan', src: '/jp morgan.webp' },
+    { name: 'KSurf', src: '/ksurf.webp' },
+    { name: 'Morgan Stanley', src: '/Morgan stanley.png' }
   ];
 
   return (
@@ -808,10 +824,16 @@ export default function Home() {
           </div>
           
           <div className="relative w-full overflow-hidden marquee-mask py-4">
-            <div className="animate-marquee-fast whitespace-nowrap flex items-center gap-4 sm:gap-8">
-               {[...hiringLogos, ...hiringLogos, ...hiringLogos].map((name, i) => (
-                 <div key={i} className="inline-flex items-center justify-center px-6 sm:px-12 py-6 sm:py-10 bg-white rounded-xl sm:rounded-2xl border border-gray-100 shadow-[0_2px_15px_rgba(0,0,0,0.03)] flex-shrink-0 min-w-[140px] sm:min-w-[220px] transition-transform hover:scale-105 duration-300">
-                   <span className="text-gray-700 font-bold text-sm sm:text-xl font-heading tracking-tight">{name}</span>
+            <div className="animate-marquee-fast whitespace-nowrap flex items-center gap-5 sm:gap-10">
+               {[...hiringLogos, ...hiringLogos, ...hiringLogos].map((logo, i) => (
+                 <div key={`${logo.name}-${i}`} className="inline-flex items-center justify-center px-9 sm:px-16 py-7 sm:py-11 bg-white rounded-xl sm:rounded-2xl border border-gray-100 shadow-[0_2px_15px_rgba(0,0,0,0.03)] flex-shrink-0 min-w-[200px] sm:min-w-[290px] h-[116px] sm:h-[152px] transition-transform hover:scale-105 duration-300">
+                   <Image
+                     src={logo.src}
+                     alt={`${logo.name} logo`}
+                     width={245}
+                     height={98}
+                     className="max-h-[4.5rem] sm:max-h-[5.5rem] w-auto object-contain"
+                   />
                  </div>
                ))}
             </div>

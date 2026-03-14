@@ -8,8 +8,8 @@
   --color-brand-light: #f8fafc;
   --color-brand-gray: #64748B;
 
-  --font-heading: "Poppins", sans-serif;
-  --font-sans: "Inter", sans-serif;
+  --font-heading: "Montserrat", sans-serif;
+  --font-sans: "Montserrat", sans-serif;
 
   --animate-marquee: marquee 15s linear infinite;
   --animate-marquee-fast: marquee 8s linear infinite;
@@ -54,6 +54,18 @@ h1, h2, h3, h4, h5, h6, .font-heading, button, .cta-text {
 
 p, span:not(.font-heading):not(.cta-text), li, input, select, textarea {
   font-family: var(--font-sans);
+}
+
+.font-black {
+  font-weight: 700 !important;
+}
+
+.font-extrabold {
+  font-weight: 650 !important;
+}
+
+.font-bold {
+  font-weight: 550 !important;
 }
 
 .glass-effect {
