@@ -144,11 +144,27 @@ const CounsellingModal = ({
                 </div>
 
                 <button 
-                  onClick={() => name.trim().length > 0 && phone.length === 10 && setStep(2)}
-                  disabled={name.trim().length === 0 || phone.length !== 10}
+                  onClick={async () => {
+                    if (name.trim().length === 0 || phone.length !== 10 || isLoading) return;
+
+                    setIsLoading(true);
+                    try {
+                      await fetch('/api/lead', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, phone, stage: 'initial' })
+                      });
+                    } catch (err) {
+                      console.error('Initial submission error:', err);
+                    } finally {
+                      setIsLoading(false);
+                      setStep(2);
+                    }
+                  }}
+                  disabled={name.trim().length === 0 || phone.length !== 10 || isLoading}
                   className="w-full bg-brand-secondary text-white py-4 sm:py-5 rounded-xl sm:rounded-2xl font-black text-base sm:text-lg shadow-xl hover:shadow-2xl active:scale-[0.98] transition-all disabled:opacity-50 disabled:grayscale uppercase tracking-tight font-heading"
                 >
-                  Continue
+                  {isLoading ? 'Processing...' : 'Continue'}
                 </button>
               </div>
             ) : (
@@ -186,7 +202,7 @@ const CounsellingModal = ({
                         await fetch('/api/lead', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ name, email, phone, experience, token })
+                          body: JSON.stringify({ name, email, phone, experience, token, stage: 'final' })
                         });
                         
                         sendGTMEvent({ 

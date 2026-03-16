@@ -6,33 +6,35 @@ import { query } from '@/utils/db';
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const { name, email, phone, experience } = body;
+        const { name, email, phone, experience, stage } = body;
 
         const host = req.headers.get('host') || 'unknown';
         const protocol = req.headers.get('x-forwarded-proto') || 'https';
         const domainUrl = `${protocol}://${host}`;
 
-        // Store in Database
-        try {
-            await query(`
-                CREATE TABLE IF NOT EXISTS leads (
-                    id SERIAL PRIMARY KEY,
-                    name TEXT,
-                    email TEXT,
-                    phone TEXT,
-                    experience TEXT,
-                    source TEXT,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            `);
-            
-            await query(
-                'INSERT INTO leads (name, email, phone, experience, source) VALUES ($1, $2, $3, $4, $5)',
-                [name, email, phone, experience, domainUrl]
-            );
-        } catch (dbError) {
-            logger.error(dbError as Error, 'Database Lead Storage Error');
-            // Continue even if DB fails so LSQ might still work
+        if (stage !== 'initial') {
+            // Store in Database only on final submission
+            try {
+                await query(`
+                    CREATE TABLE IF NOT EXISTS leads (
+                        id SERIAL PRIMARY KEY,
+                        name TEXT,
+                        email TEXT,
+                        phone TEXT,
+                        experience TEXT,
+                        source TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                `);
+                
+                await query(
+                    'INSERT INTO leads (name, email, phone, experience, source) VALUES ($1, $2, $3, $4, $5)',
+                    [name, email, phone, experience, domainUrl]
+                );
+            } catch (dbError) {
+                logger.error(dbError as Error, 'Database Lead Storage Error');
+                // Continue even if DB fails so LSQ might still work
+            }
         }
 
         const attributes = buildLeadSquaredAttributes({
