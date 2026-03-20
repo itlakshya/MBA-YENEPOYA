@@ -87,6 +87,11 @@ const enqueueLeadSquaredTask = async <T,>(task: QueueTask<T>) => {
     return leadSquaredQueue.enqueue(() => withRetries(task));
 };
 
+const isDuplicateEmailError = (err: unknown) => {
+    const message = err instanceof Error ? err.message : String(err || "");
+    return message.includes("MXDuplicateEntryException") && message.includes("same Email already exists");
+};
+
 const normalizePhoneForLsq = (value?: string | null) => {
     if (!value) return null;
     const digits = String(value).replace(/\D/g, "");
@@ -266,6 +271,7 @@ export const sendLeadSquaredCaptureIfNeeded = async (attributes: LeadAttribute[]
     }
     return enqueueLeadSquaredTask(async () => {
         const phoneAttr = attributes.find((attr) => attr.Attribute === "Phone");
+        const emailAttr = attributes.find((attr) => attr.Attribute === "EmailAddress");
         const phone = phoneAttr?.Value;
         if (!phone) return;
 
@@ -284,14 +290,30 @@ export const sendLeadSquaredCaptureIfNeeded = async (attributes: LeadAttribute[]
                     return;
                 }
 
-                await sendLeadSquaredCapture(pending, "Phone");
+                try {
+                    await sendLeadSquaredCapture(pending, "Phone");
+                } catch (err) {
+                    if (emailAttr?.Value && isDuplicateEmailError(err)) {
+                        await sendLeadSquaredCapture(pending, "EmailAddress");
+                        return;
+                    }
+                    throw err;
+                }
                 return;
             }
         } catch (err: any) {
             logger.error(err, "LeadSquared retrieve failed");
         }
 
-        await sendLeadSquaredCapture(attributes, "Phone");
+        try {
+            await sendLeadSquaredCapture(attributes, "Phone");
+        } catch (err) {
+            if (emailAttr?.Value && isDuplicateEmailError(err)) {
+                await sendLeadSquaredCapture(attributes, "EmailAddress");
+                return;
+            }
+            throw err;
+        }
     });
 };
 
