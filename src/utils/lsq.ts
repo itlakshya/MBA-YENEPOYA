@@ -229,6 +229,7 @@ export const buildLeadSquaredAttributes = (params: {
     email?: string | null;
     mobile?: string | null;
     eduQualificationName?: string | null;
+    workExperience?: string | null;
     examCenterName?: string | null;
     source?: string | null;
     attendedScholarship?: boolean | null;
@@ -249,6 +250,7 @@ export const buildLeadSquaredAttributes = (params: {
         { Attribute: "Phone", Value: phone },
         { Attribute: "EmailAddress", Value: params.email || "" },
         { Attribute: "mx_Highest_Education_Qualification", Value: params.eduQualificationName || "" },
+        { Attribute: "mx_Work_Experience", Value: params.workExperience || "" },
         { Attribute: "mx_Branch", Value: params.examCenterName || "" },
         { Attribute: "Source", Value: params.source || "Lakshya Assesment portal" },
         ...(params.attendedScholarship ? [{ Attribute: "mx_Attended_Scholarship", Value: "Yes" }] : []),

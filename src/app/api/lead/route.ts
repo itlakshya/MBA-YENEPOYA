@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
             name,
             email,
             mobile: phone,
-            eduQualificationName: experience,
+            workExperience: experience,
             source: domainUrl
         });
 
