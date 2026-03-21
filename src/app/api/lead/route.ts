@@ -1,7 +1,21 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { after, NextRequest, NextResponse } from 'next/server';
 import { buildLeadSquaredAttributes, sendLeadSquaredCaptureIfNeeded } from '@/utils/lsq';
 import logger from '@/utils/logger';
-import { query } from '@/utils/db';
+import { ensureLeadsTable, query } from '@/utils/db';
+
+const storeLead = async (params: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    experience?: string;
+    source: string;
+}) => {
+    await ensureLeadsTable();
+    await query(
+        'INSERT INTO leads (name, email, phone, experience, source) VALUES ($1, $2, $3, $4, $5)',
+        [params.name, params.email, params.phone, params.experience, params.source]
+    );
+};
 
 export async function POST(req: NextRequest) {
     try {
@@ -12,31 +26,6 @@ export async function POST(req: NextRequest) {
         const protocol = req.headers.get('x-forwarded-proto') || 'https';
         const domainUrl = `${protocol}://${host}`;
 
-        if (stage !== 'initial') {
-            // Store in Database only on final submission
-            try {
-                await query(`
-                    CREATE TABLE IF NOT EXISTS leads (
-                        id SERIAL PRIMARY KEY,
-                        name TEXT,
-                        email TEXT,
-                        phone TEXT,
-                        experience TEXT,
-                        source TEXT,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                    )
-                `);
-                
-                await query(
-                    'INSERT INTO leads (name, email, phone, experience, source) VALUES ($1, $2, $3, $4, $5)',
-                    [name, email, phone, experience, domainUrl]
-                );
-            } catch (dbError) {
-                logger.error(dbError as Error, 'Database Lead Storage Error');
-                // Continue even if DB fails so LSQ might still work
-            }
-        }
-
         const attributes = buildLeadSquaredAttributes({
             name,
             email,
@@ -45,14 +34,32 @@ export async function POST(req: NextRequest) {
             source: domainUrl
         });
 
-        if (attributes) {
-            await sendLeadSquaredCaptureIfNeeded(attributes);
-            return NextResponse.json({ success: true });
-        } else {
+        if (!attributes) {
             return NextResponse.json({ success: false, error: 'Invalid phone number' }, { status: 400 });
         }
-    } catch (error: any) {
-        logger.error(error, 'API Lead Submission Error');
-        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+
+        after(async () => {
+            if (stage !== 'initial') {
+                try {
+                    await storeLead({ name, email, phone, experience, source: domainUrl });
+                } catch (dbError) {
+                    logger.error(dbError as Error, 'Database Lead Storage Error');
+                }
+            }
+
+            try {
+                await sendLeadSquaredCaptureIfNeeded(attributes);
+            } catch (lsqError) {
+                logger.error(lsqError as Error, 'LeadSquared Submission Error');
+            }
+        });
+
+        return NextResponse.json({ success: true });
+    } catch (error: unknown) {
+        logger.error(error instanceof Error ? error : String(error), 'API Lead Submission Error');
+        return NextResponse.json(
+            { success: false, error: error instanceof Error ? error.message : 'Unknown error' },
+            { status: 500 }
+        );
     }
 }

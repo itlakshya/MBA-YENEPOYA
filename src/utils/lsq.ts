@@ -301,7 +301,7 @@ export const sendLeadSquaredCaptureIfNeeded = async (attributes: LeadAttribute[]
                 }
                 return;
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             logger.error(err, "LeadSquared retrieve failed");
         }
 

@@ -6,19 +6,19 @@ import { sendGTMEvent } from '@next/third-parties/google';
 
 declare global {
   interface Window {
-    grecaptcha: any;
+    grecaptcha?: {
+      ready: (callback: () => void) => void;
+      execute: (siteKey: string, options: { action: string }) => Promise<string>;
+    };
   }
 }
-import { 
-  GraduationCap, 
+import {
   CheckCircle2, 
-  ArrowRight, 
   ChevronDown, 
   X, 
   BookOpen, 
   Award, 
   Users2, 
-  Play, 
   Building2, 
   TrendingUp, 
   ShieldCheck, 
@@ -26,10 +26,7 @@ import {
   Download, 
   Globe2,
   Layers,
-  Phone,
-  MessageCircle,
   Clock,
-  Briefcase,
   BarChart3,
   PieChart,
   ShieldAlert,
@@ -41,27 +38,43 @@ import {
   FileText
 } from 'lucide-react';
 
+const SYLLABUS_DOWNLOAD_PATH = '/api/syllabus';
+
+const triggerSyllabusDownload = () => {
+  const link = document.createElement('a');
+  link.href = SYLLABUS_DOWNLOAD_PATH;
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
 // Modal Component
 const CounsellingModal = ({ 
   isOpen, 
   onClose, 
   initialPhone = '', 
   initialName = '',
-  initialStep = 1 
+  initialStep = 1,
+  shouldDownloadSyllabus = false,
 }: { 
   isOpen: boolean; 
   onClose: () => void;
   initialPhone?: string;
   initialName?: string;
   initialStep?: number;
+  shouldDownloadSyllabus?: boolean;
 }) => {
   const [step, setStep] = useState(initialStep);
   const [phone, setPhone] = useState(initialPhone);
   const [name, setName] = useState(initialName);
   const [email, setEmail] = useState('');
-  const [experience, setExperience] = useState('Graduate and Above - No Experience');
+  const [experience, setExperience] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [finalStepError, setFinalStepError] = useState('');
+  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
   // Sync state when modal opens with new props
   React.useEffect(() => {
@@ -70,9 +83,10 @@ const CounsellingModal = ({
       setPhone(initialPhone);
       setName(initialName);
       setEmail('');
-      setExperience('Graduate and Above - No Experience');
+      setExperience('');
       setIsSubmitted(false);
       setIsLoading(false);
+      setFinalStepError('');
     }
   }, [isOpen, initialPhone, initialName, initialStep]);
 
@@ -149,10 +163,13 @@ const CounsellingModal = ({
 
                     setIsLoading(true);
                     try {
-                      await fetch('/api/lead', {
+                      fetch('/api/lead', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
+                        keepalive: true,
                         body: JSON.stringify({ name, phone, stage: 'initial' })
+                      }).catch((err) => {
+                        console.error('Initial submission error:', err);
                       });
                     } catch (err) {
                       console.error('Initial submission error:', err);
@@ -174,7 +191,10 @@ const CounsellingModal = ({
                   <input 
                     type="email" 
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (finalStepError) setFinalStepError('');
+                    }}
                     placeholder="john@example.com" 
                     className="w-full px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:ring-2 focus:ring-brand-primary focus:bg-white outline-none transition font-medium font-sans" 
                   />
@@ -183,9 +203,13 @@ const CounsellingModal = ({
                   <label className="block text-xs font-bold text-brand-primary mb-2 uppercase tracking-wider font-heading">Select Experience</label>
                   <select 
                     value={experience}
-                    onChange={(e) => setExperience(e.target.value)}
+                    onChange={(e) => {
+                      setExperience(e.target.value);
+                      if (finalStepError) setFinalStepError('');
+                    }}
                     className="w-full px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:ring-2 focus:ring-brand-primary focus:bg-white outline-none transition font-medium appearance-none font-sans"
                   >
+                    <option value="" disabled>Select experience</option>
                     <option>Graduate and Above - No Experience</option>
                     <option>0-1 Yr</option>
                     <option>2-5 Yrs</option>
@@ -194,6 +218,26 @@ const CounsellingModal = ({
                 </div>
                 <button 
                   onClick={() => {
+                    const experienceValue = experience.trim();
+
+                    if (!isEmailValid && !experienceValue) {
+                      setFinalStepError('Fill the email and select experience.');
+                      return;
+                    }
+
+                    if (!isEmailValid) {
+                      setFinalStepError('Fill the email.');
+                      return;
+                    }
+
+                    if (!experienceValue) {
+                      setFinalStepError('Select experience.');
+                      return;
+                    }
+
+                    if (isLoading) return;
+
+                    setFinalStepError('');
                     setIsLoading(true);
                     const siteKey = process.env.NEXT_PUBLIC_GOOGLE_RECAPTCHE_SITE_KEY;
                     
@@ -202,6 +246,7 @@ const CounsellingModal = ({
                         await fetch('/api/lead', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
+                          keepalive: true,
                           body: JSON.stringify({ name, email, phone, experience, token, stage: 'final' })
                         });
                         
@@ -210,21 +255,33 @@ const CounsellingModal = ({
                           form_name: 'counselling_modal',
                           recaptcha_token: token 
                         });
+                        if (shouldDownloadSyllabus) {
+                          triggerSyllabusDownload();
+                          onClose();
+                          return;
+                        }
                         setIsSubmitted(true);
                       } catch (err) {
                         console.error('Submission error:', err);
                         // Still show success to user
+                        if (shouldDownloadSyllabus) {
+                          triggerSyllabusDownload();
+                          onClose();
+                          return;
+                        }
                         setIsSubmitted(true);
                       } finally {
                         setIsLoading(false);
                       }
                     };
 
-                    if (window.grecaptcha && siteKey) {
-                      window.grecaptcha.ready(() => {
-                        window.grecaptcha.execute(siteKey, { action: 'submit' })
+                    const grecaptcha = window.grecaptcha;
+
+                    if (grecaptcha && siteKey) {
+                      grecaptcha.ready(() => {
+                        grecaptcha.execute(siteKey, { action: 'submit' })
                           .then((token: string) => submitData(token))
-                          .catch((err: any) => {
+                          .catch((err: unknown) => {
                             console.error('reCAPTCHA error:', err);
                             submitData();
                           });
@@ -234,7 +291,7 @@ const CounsellingModal = ({
                     }
                   }}
                   disabled={isLoading}
-                  className="w-full bg-brand-secondary text-white py-4 sm:py-5 rounded-xl sm:rounded-2xl font-black text-base sm:text-lg shadow-xl hover:bg-sky-400 transition-all mt-4 uppercase tracking-tight font-heading disabled:opacity-70 flex items-center justify-center"
+                  className="w-full bg-brand-secondary text-white py-4 sm:py-5 rounded-xl sm:rounded-2xl font-black text-base sm:text-lg shadow-xl hover:bg-sky-400 transition-all mt-4 uppercase tracking-tight font-heading disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
                 >
                   {isLoading ? (
                     <div className="flex items-center gap-2">
@@ -243,6 +300,9 @@ const CounsellingModal = ({
                     </div>
                   ) : "Register Now"}
                 </button>
+                {finalStepError ? (
+                  <p className="text-sm font-medium text-red-600 text-center">{finalStepError}</p>
+                ) : null}
               </div>
             )}
 
@@ -352,7 +412,7 @@ const DeadlineTimer = () => {
   );
 };
 
-const Hero = ({ onOpenModal }: { onOpenModal: () => void }) => (
+const Hero = ({ onOpenModal, onOpenDownloadModal }: { onOpenModal: () => void; onOpenDownloadModal: () => void }) => (
   <section className="pt-24 pb-12 md:pt-40 md:pb-20 bg-brand-primary hex-pattern relative overflow-hidden">
     <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 relative z-10 flex justify-center">
       <div className="w-full max-w-4xl flex flex-col items-start">
@@ -405,7 +465,7 @@ const Hero = ({ onOpenModal }: { onOpenModal: () => void }) => (
             <button 
               onClick={() => {
                 sendGTMEvent({ event: 'button_click', button_name: 'hero_download_syllabus' });
-                onOpenModal();
+                onOpenDownloadModal();
               }}
               className="flex items-center justify-center bg-white/10 text-white border-2 border-white/20 px-8 sm:px-10 py-3 sm:py-4 rounded-xl font-black text-sm sm:text-lg hover:bg-white/20 transition-all active:scale-[0.98] whitespace-nowrap tracking-tighter backdrop-blur-sm font-heading"
             >
@@ -565,7 +625,7 @@ const Features = () => {
   );
 };
 
-const Curriculum = ({ onOpenModal }: { onOpenModal: () => void }) => {
+const Curriculum = ({ onOpenDownloadModal }: { onOpenDownloadModal: () => void }) => {
   const [activeSem, setActiveSem] = useState<1 | 2 | 3 | 4>(1);
   const semData = {
     1: ["Management concepts", "Organizational behavior", "Business environment", "Managerial economics", "Accounting for managers", "Business communication"],
@@ -611,7 +671,7 @@ const Curriculum = ({ onOpenModal }: { onOpenModal: () => void }) => {
           <button 
             onClick={() => {
               sendGTMEvent({ event: 'button_click', button_name: 'curriculum_download_syllabus' });
-              onOpenModal();
+              onOpenDownloadModal();
             }}
             className="flex items-center justify-center bg-brand-secondary text-white px-8 sm:px-12 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black text-base sm:text-lg hover:bg-sky-400 transition-all shadow-xl shadow-sky-500/20 active:scale-[0.98] tracking-tight font-heading group"
           >
@@ -671,7 +731,7 @@ const FeeStructure = ({ onOpenModal }: { onOpenModal: () => void }) => (
 );
 
 
-const MobileStickyCTA = ({ onOpenModal }: { onOpenModal: () => void }) => (
+const MobileStickyCTA = ({ onOpenModal, onOpenDownloadModal }: { onOpenModal: () => void; onOpenDownloadModal: () => void }) => (
   <div className="md:hidden fixed bottom-0 left-0 right-0 bg-brand-primary border-t border-brand-dark/20 p-3 z-50 shadow-[0_-10px_20px_rgba(0,0,0,0.15)]">
     <div className="flex gap-3">
       <button 
@@ -686,7 +746,7 @@ const MobileStickyCTA = ({ onOpenModal }: { onOpenModal: () => void }) => (
       <button 
         onClick={() => {
           sendGTMEvent({ event: 'button_click', button_name: 'mobile_download_syllabus' });
-          onOpenModal();
+          onOpenDownloadModal();
         }}
         className="flex-1 border-2 border-white/40 bg-white/10 rounded-xl py-2.5 px-2 flex items-center justify-center active:scale-95 transition-transform backdrop-blur-sm"
       >
@@ -701,13 +761,14 @@ export default function Home() {
     isOpen: false,
     phone: '',
     name: '',
-    step: 1
+    step: 1,
+    shouldDownloadSyllabus: false,
   });
   const [placementPhone, setPlacementPhone] = useState('');
   const [placementName, setPlacementName] = useState('');
 
-  const openModal = (phone = '', name = '', step = 1) => {
-    setModalConfig({ isOpen: true, phone, name, step });
+  const openModal = (phone = '', name = '', step = 1, shouldDownloadSyllabus = false) => {
+    setModalConfig({ isOpen: true, phone, name, step, shouldDownloadSyllabus });
   };
 
   const closeModal = () => {
@@ -732,12 +793,12 @@ export default function Home() {
     <div className="min-h-screen bg-white flex flex-col font-sans selection:bg-brand-secondary selection:text-white">
       <Navbar onOpenModal={() => openModal()} />
       <main className="flex-grow pb-20 md:pb-0">
-        <Hero onOpenModal={() => openModal()} />
+        <Hero onOpenModal={() => openModal()} onOpenDownloadModal={() => openModal('', '', 1, true)} />
         <Accreditations />
         <Stats />
         <ProgramHighlights />
         <Features />
-        <Curriculum onOpenModal={() => openModal()} />
+        <Curriculum onOpenDownloadModal={() => openModal('', '', 1, true)} />
         <FeeStructure onOpenModal={() => openModal()} />
         
         {/* Career Outcomes & Placement Section */}
@@ -835,7 +896,7 @@ export default function Home() {
         <section className="py-12 sm:py-20 bg-white">
           <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 text-center mb-10">
             <h2 className="text-brand-primary font-sans text-lg sm:text-xl font-medium tracking-tight">
-              Land careers at the world's leading professional firms and multinational corporations.
+              Land careers at the world&apos;s leading professional firms and multinational corporations.
             </h2>
           </div>
           
@@ -915,9 +976,10 @@ export default function Home() {
         initialPhone={modalConfig.phone}
         initialName={modalConfig.name}
         initialStep={modalConfig.step}
+        shouldDownloadSyllabus={modalConfig.shouldDownloadSyllabus}
       />
 
-      <MobileStickyCTA onOpenModal={() => openModal()} />
+      <MobileStickyCTA onOpenModal={() => openModal()} onOpenDownloadModal={() => openModal('', '', 1, true)} />
     </div>
   );
 }
