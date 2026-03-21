@@ -8,21 +8,13 @@ const storeLead = async (params: {
     email?: string;
     phone?: string;
     experience?: string;
-<<<<<<< HEAD
     stage?: string;
-=======
->>>>>>> 5d80ce99e2fec21f6b27904392dafe777607797d
     source: string;
 }) => {
     await ensureLeadsTable();
     await query(
-<<<<<<< HEAD
         'INSERT INTO leads (name, email, phone, experience, stage, source) VALUES ($1, $2, $3, $4, $5, $6)',
         [params.name, params.email, params.phone, params.experience, params.stage || null, params.source]
-=======
-        'INSERT INTO leads (name, email, phone, experience, source) VALUES ($1, $2, $3, $4, $5)',
-        [params.name, params.email, params.phone, params.experience, params.source]
->>>>>>> 5d80ce99e2fec21f6b27904392dafe777607797d
     );
 };
 
@@ -48,19 +40,10 @@ export async function POST(req: NextRequest) {
         }
 
         after(async () => {
-<<<<<<< HEAD
             try {
                 await storeLead({ name, email, phone, experience, stage, source: domainUrl });
             } catch (dbError) {
                 logger.error(dbError as Error, 'Database Lead Storage Error');
-=======
-            if (stage !== 'initial') {
-                try {
-                    await storeLead({ name, email, phone, experience, source: domainUrl });
-                } catch (dbError) {
-                    logger.error(dbError as Error, 'Database Lead Storage Error');
-                }
->>>>>>> 5d80ce99e2fec21f6b27904392dafe777607797d
             }
 
             try {
