@@ -3,18 +3,20 @@ import { buildLeadSquaredAttributes, sendLeadSquaredCaptureIfNeeded } from '@/ut
 import logger from '@/utils/logger';
 import { ensureLeadsTable, query } from '@/utils/db';
 
+const LANDING_PATH = '/online-mba-yenepoyauniversity';
+const DEFAULT_SITE_ORIGIN = 'https://yenepoyaonline.com';
+
 const storeLead = async (params: {
     name?: string;
     email?: string;
     phone?: string;
     experience?: string;
     stage?: string;
-    source: string;
 }) => {
     await ensureLeadsTable();
     await query(
         'INSERT INTO leads (name, email, phone, experience, stage, source) VALUES ($1, $2, $3, $4, $5, $6)',
-        [params.name, params.email, params.phone, params.experience, params.stage || null, params.source]
+        [params.name, params.email, params.phone, params.experience, params.stage || null, null]
     );
 };
 
@@ -25,14 +27,17 @@ export async function POST(req: NextRequest) {
 
         const host = req.headers.get('host') || 'unknown';
         const protocol = req.headers.get('x-forwarded-proto') || 'https';
-        const domainUrl = `${protocol}://${host}`;
+        const siteOrigin =
+            process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ||
+            (host === 'unknown' ? DEFAULT_SITE_ORIGIN : `${protocol}://${host}`);
+        const conversionRefUrl = `${siteOrigin}${LANDING_PATH}`;
 
         const attributes = buildLeadSquaredAttributes({
             name,
             email,
             mobile: phone,
             workExperience: experience,
-            source: domainUrl
+            conversionRefUrl
         });
 
         if (!attributes) {
@@ -41,7 +46,7 @@ export async function POST(req: NextRequest) {
 
         after(async () => {
             try {
-                await storeLead({ name, email, phone, experience, stage, source: domainUrl });
+                await storeLead({ name, email, phone, experience, stage });
             } catch (dbError) {
                 logger.error(dbError as Error, 'Database Lead Storage Error');
             }

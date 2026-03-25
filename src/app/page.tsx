@@ -953,13 +953,20 @@ export default function Home() {
       </main>
 
       <footer className="bg-brand-footer text-white font-sans">
-        <div className="max-w-7xl mx-auto px-5 py-12 flex flex-col md:flex-row justify-between items-center gap-8">
-          <div className="bg-white p-4 rounded-xl inline-block">
-            <div className="flex items-center space-x-3">
-              <div className="flex flex-col leading-none">
-                <span className="text-brand-primary font-black text-xl uppercase tracking-tighter">YENEPOYA</span>
-              </div>
-            </div>
+        <div className="max-w-7xl mx-auto px-5 py-12 flex flex-col md:flex-row justify-between items-center md:items-start gap-8">
+          <div className="flex flex-col items-center md:items-start gap-4 max-w-2xl">
+            <div className="bg-white p-4 rounded-xl inline-block">
+              <Image
+                src="/favicon.svg"
+                alt="MBA CPA logo"
+                width={96}
+                height={96}
+                className="h-16 w-auto"
+              />
+          </div>
+            <p className="text-sm leading-relaxed text-white/75 text-center md:text-left">
+              Disclaimer: We act as a service partner only for MBA+CPA program. Jain University hold full rights to request change or removal of any non-relevant content for their MBA program. Images used are for illustrative purposes and do not directly represent the respective colleges or universities.
+            </p>
           </div>
           <div className="flex flex-col md:items-end gap-2 text-sm text-white/60 font-medium">
             <p>© 2026 IIC Lakshya. All Rights Reserved.</p>

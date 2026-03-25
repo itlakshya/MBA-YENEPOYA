@@ -236,7 +236,7 @@ export const buildLeadSquaredAttributes = (params: {
     eduQualificationName?: string | null;
     workExperience?: string | null;
     examCenterName?: string | null;
-    source?: string | null;
+    conversionRefUrl?: string | null;
     attendedScholarship?: boolean | null;
     lapSignInDate?: string | null;
 }) => {
@@ -257,7 +257,7 @@ export const buildLeadSquaredAttributes = (params: {
         { Attribute: "mx_Highest_Education_Qualification", Value: params.eduQualificationName || "" },
         { Attribute: "mx_Work_Experience", Value: params.workExperience || "" },
         { Attribute: "mx_Branch", Value: params.examCenterName || "" },
-        { Attribute: "Source", Value: params.source || "Lakshya Assesment portal" },
+        { Attribute: "mx_Conversion_Ref_URL", Value: params.conversionRefUrl || "" },
         ...(params.attendedScholarship ? [{ Attribute: "mx_Attended_Scholarship", Value: "Yes" }] : []),
         ...(lapSignInDate ? [{ Attribute: "mx_LAP_SignIn_Date", Value: lapSignInDate }] : [])
     ];
