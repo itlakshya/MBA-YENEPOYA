@@ -3,7 +3,7 @@ import { buildLeadSquaredAttributes, sendLeadSquaredCaptureIfNeeded } from '@/ut
 import logger from '@/utils/logger';
 import { ensureLeadsTable, query } from '@/utils/db';
 
-const LANDING_PATH = '/online-mba-yenepoyauniversity';
+const LANDING_PATH = '/online-mba-course-yenepoyauniversity';
 const DEFAULT_SITE_ORIGIN = 'https://yenepoyaonline.com';
 
 const storeLead = async (params: {
