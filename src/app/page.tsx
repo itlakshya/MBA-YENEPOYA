@@ -4,6 +4,100 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { sendGTMEvent } from '@next/third-parties/google';
 
+const CAMPAIGN_URL_STORAGE_KEY = 'yenepoya_campaign_url';
+const LANDING_PATH = '/online-mba-course-yenepoyauniversity';
+const MARKETING_PARAM_KEYS = [
+  'utm_source',
+  'utm_medium',
+  'utm_campaign',
+  'utm_term',
+  'utm_content',
+  'utm_id',
+  'utm_source_platform',
+  'utm_creative_format',
+  'utm_marketing_tactic',
+  'campaignid',
+  'utm_adgroup',
+  'adgroupid',
+  'matchtype',
+  'network',
+  'device',
+  'utm_device',
+  'keyword',
+  'utm_keyword',
+  'placement',
+  'utm_placement',
+  'targetid',
+  'loc_interest_ms',
+  'loc_physical_ms',
+  'creative',
+  'adposition',
+  'feeditemid',
+  'gad_source',
+  'gad_campaignid',
+  'gclid',
+  'gbraid',
+  'wbraid',
+  'fbclid',
+  'msclkid',
+  'ttclid',
+  'twclid',
+  'li_fat_id'
+] as const;
+
+const buildCanonicalCampaignUrl = (input: URL, fallbackOrigin?: string) => {
+  const base = new URL(LANDING_PATH, fallbackOrigin || input.origin);
+  const seen = new Set<string>();
+
+  for (const key of MARKETING_PARAM_KEYS) {
+    const values = input.searchParams.getAll(key);
+    for (const rawValue of values) {
+      const value = rawValue.trim();
+      if (!value) continue;
+      const dedupeKey = `${key}=${value}`;
+      if (seen.has(dedupeKey)) continue;
+      seen.add(dedupeKey);
+      base.searchParams.append(key, value);
+    }
+  }
+
+  return base.toString();
+};
+
+const getCampaignPageUrl = () => {
+  if (typeof window === 'undefined') return '';
+
+  const currentUrl = window.location.href;
+
+  try {
+    const current = new URL(currentUrl);
+    const canonicalCurrent = buildCanonicalCampaignUrl(current);
+    const hasCampaignParams = canonicalCurrent.includes('?');
+    const stored = window.sessionStorage.getItem(CAMPAIGN_URL_STORAGE_KEY);
+
+    if (hasCampaignParams) {
+      window.sessionStorage.setItem(CAMPAIGN_URL_STORAGE_KEY, canonicalCurrent);
+      return canonicalCurrent;
+    }
+
+    if (stored) {
+      return stored;
+    }
+
+    if (current.pathname === '/' || current.pathname === '') {
+      const fallback = `${current.origin}${LANDING_PATH}`;
+      window.sessionStorage.setItem(CAMPAIGN_URL_STORAGE_KEY, fallback);
+      return fallback;
+    }
+
+    const fallbackCurrent = buildCanonicalCampaignUrl(current);
+    window.sessionStorage.setItem(CAMPAIGN_URL_STORAGE_KEY, fallbackCurrent);
+    return fallbackCurrent;
+  } catch {
+    return currentUrl;
+  }
+};
+
 declare global {
   interface Window {
     grecaptcha?: {
@@ -163,7 +257,7 @@ const CounsellingModal = ({
 
                     setIsLoading(true);
                     try {
-                      const pageUrl = window.location.href;
+                      const pageUrl = getCampaignPageUrl();
                       fetch('/api/lead', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -241,7 +335,7 @@ const CounsellingModal = ({
                     setFinalStepError('');
                     setIsLoading(true);
                     const siteKey = process.env.NEXT_PUBLIC_GOOGLE_RECAPTCHE_SITE_KEY;
-                    const pageUrl = window.location.href;
+                    const pageUrl = getCampaignPageUrl();
                     
                     const submitData = async (token?: string) => {
                       try {
@@ -768,6 +862,10 @@ export default function Home() {
   });
   const [placementPhone, setPlacementPhone] = useState('');
   const [placementName, setPlacementName] = useState('');
+
+  React.useEffect(() => {
+    getCampaignPageUrl();
+  }, []);
 
   const openModal = (phone = '', name = '', step = 1, shouldDownloadSyllabus = false) => {
     setModalConfig({ isOpen: true, phone, name, step, shouldDownloadSyllabus });

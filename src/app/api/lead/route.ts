@@ -5,6 +5,44 @@ import { ensureLeadsTable, query } from '@/utils/db';
 
 const LANDING_PATH = '/online-mba-course-yenepoyauniversity';
 const DEFAULT_SITE_ORIGIN = 'https://yenepoyaonline.com';
+const MARKETING_PARAM_KEYS = [
+    'utm_source',
+    'utm_medium',
+    'utm_campaign',
+    'utm_term',
+    'utm_content',
+    'utm_id',
+    'utm_source_platform',
+    'utm_creative_format',
+    'utm_marketing_tactic',
+    'campaignid',
+    'utm_adgroup',
+    'adgroupid',
+    'matchtype',
+    'network',
+    'device',
+    'utm_device',
+    'keyword',
+    'utm_keyword',
+    'placement',
+    'utm_placement',
+    'targetid',
+    'loc_interest_ms',
+    'loc_physical_ms',
+    'creative',
+    'adposition',
+    'feeditemid',
+    'gad_source',
+    'gad_campaignid',
+    'gclid',
+    'gbraid',
+    'wbraid',
+    'fbclid',
+    'msclkid',
+    'ttclid',
+    'twclid',
+    'li_fat_id'
+] as const;
 
 const storeLead = async (params: {
     name?: string;
@@ -28,6 +66,24 @@ const resolveCampaignUrl = (params: {
 }) => {
     const fallbackUrl = `${params.siteOrigin}${LANDING_PATH}`;
     const candidates = [params.pageUrl, params.referer];
+    const buildCanonicalCampaignUrl = (input: URL) => {
+        const base = new URL(LANDING_PATH, params.siteOrigin);
+        const seen = new Set<string>();
+
+        for (const key of MARKETING_PARAM_KEYS) {
+            const values = input.searchParams.getAll(key);
+            for (const rawValue of values) {
+                const value = rawValue.trim();
+                if (!value) continue;
+                const dedupeKey = `${key}=${value}`;
+                if (seen.has(dedupeKey)) continue;
+                seen.add(dedupeKey);
+                base.searchParams.append(key, value);
+            }
+        }
+
+        return base.toString();
+    };
 
     for (const candidate of candidates) {
         if (!candidate) continue;
@@ -37,7 +93,7 @@ const resolveCampaignUrl = (params: {
             if (!['http:', 'https:'].includes(parsed.protocol)) {
                 continue;
             }
-            return parsed.toString();
+            return buildCanonicalCampaignUrl(parsed);
         } catch {
             continue;
         }
