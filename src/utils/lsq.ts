@@ -111,10 +111,7 @@ const normalizeHost = (host: string) => {
 
 const buildLeadCaptureUrl = (host: string) => {
     const base = normalizeHost(host);
-    const params = new URLSearchParams({
-        LeadUpdateBehavior: "UpdateOnlyEmptyFields"
-    });
-    return `${base}/v2/LeadManagement.svc/Lead.Capture?${params.toString()}`;
+    return `${base}/v2/LeadManagement.svc/Lead.Capture`;
 };
 
 export const sendLeadSquaredCapture = async (
@@ -270,40 +267,9 @@ export const sendLeadSquaredCaptureIfNeeded = async (attributes: LeadAttribute[]
         return;
     }
     return enqueueLeadSquaredTask(async () => {
-        const phoneAttr = attributes.find((attr) => attr.Attribute === "Phone");
         const emailAttr = attributes.find((attr) => attr.Attribute === "EmailAddress");
-        const phone = phoneAttr?.Value;
+        const phone = attributes.find((attr) => attr.Attribute === "Phone")?.Value;
         if (!phone) return;
-
-        try {
-            const lead = await fetchLeadByPhone(phone);
-            if (lead) {
-                const pending = attributes.filter((attr) => {
-                    if (attr.Attribute === "Phone") return true;
-                    const current = lead[attr.Attribute];
-                    if (current === null || current === undefined) return true;
-                    if (typeof current === "string" && current.trim() === "") return true;
-                    return false;
-                });
-
-                if (pending.length <= 1) {
-                    return;
-                }
-
-                try {
-                    await sendLeadSquaredCapture(pending, "Phone");
-                } catch (err) {
-                    if (emailAttr?.Value && isDuplicateEmailError(err)) {
-                        await sendLeadSquaredCapture(pending, "EmailAddress");
-                        return;
-                    }
-                    throw err;
-                }
-                return;
-            }
-        } catch (err: unknown) {
-            logger.error(err, "LeadSquared retrieve failed");
-        }
 
         try {
             await sendLeadSquaredCapture(attributes, "Phone");

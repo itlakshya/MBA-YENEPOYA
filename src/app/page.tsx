@@ -163,11 +163,12 @@ const CounsellingModal = ({
 
                     setIsLoading(true);
                     try {
+                      const pageUrl = window.location.href;
                       fetch('/api/lead', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         keepalive: true,
-                        body: JSON.stringify({ name, phone, stage: 'initial' })
+                        body: JSON.stringify({ name, phone, stage: 'initial', pageUrl })
                       }).catch((err) => {
                         console.error('Initial submission error:', err);
                       });
@@ -240,6 +241,7 @@ const CounsellingModal = ({
                     setFinalStepError('');
                     setIsLoading(true);
                     const siteKey = process.env.NEXT_PUBLIC_GOOGLE_RECAPTCHE_SITE_KEY;
+                    const pageUrl = window.location.href;
                     
                     const submitData = async (token?: string) => {
                       try {
@@ -247,7 +249,7 @@ const CounsellingModal = ({
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           keepalive: true,
-                          body: JSON.stringify({ name, email, phone, experience, token, stage: 'final' })
+                          body: JSON.stringify({ name, email, phone, experience, token, stage: 'final', pageUrl })
                         });
                         
                         sendGTMEvent({ 
