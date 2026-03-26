@@ -84,6 +84,13 @@ const resolveCampaignUrl = (params: {
 
         return base.toString();
     };
+    const hasCanonicalCampaignParams = (url: string) => {
+        try {
+            return new URL(url).searchParams.toString().length > 0;
+        } catch {
+            return false;
+        }
+    };
 
     for (const candidate of candidates) {
         if (!candidate) continue;
@@ -93,7 +100,10 @@ const resolveCampaignUrl = (params: {
             if (!['http:', 'https:'].includes(parsed.protocol)) {
                 continue;
             }
-            return buildCanonicalCampaignUrl(parsed);
+            const canonicalUrl = buildCanonicalCampaignUrl(parsed);
+            if (hasCanonicalCampaignParams(canonicalUrl)) {
+                return canonicalUrl;
+            }
         } catch {
             continue;
         }

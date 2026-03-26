@@ -64,6 +64,14 @@ const buildCanonicalCampaignUrl = (input: URL, fallbackOrigin?: string) => {
   return base.toString();
 };
 
+const hasCanonicalCampaignParams = (url: string) => {
+  try {
+    return new URL(url).searchParams.toString().length > 0;
+  } catch {
+    return false;
+  }
+};
+
 const getCampaignPageUrl = () => {
   if (typeof window === 'undefined') return '';
 
@@ -72,27 +80,24 @@ const getCampaignPageUrl = () => {
   try {
     const current = new URL(currentUrl);
     const canonicalCurrent = buildCanonicalCampaignUrl(current);
-    const hasCampaignParams = canonicalCurrent.includes('?');
+    const hasCampaignParams = hasCanonicalCampaignParams(canonicalCurrent);
     const stored = window.sessionStorage.getItem(CAMPAIGN_URL_STORAGE_KEY);
+    const hasStoredCampaignParams = stored ? hasCanonicalCampaignParams(stored) : false;
 
     if (hasCampaignParams) {
       window.sessionStorage.setItem(CAMPAIGN_URL_STORAGE_KEY, canonicalCurrent);
       return canonicalCurrent;
     }
 
-    if (stored) {
+    if (hasStoredCampaignParams && stored) {
       return stored;
     }
 
-    if (current.pathname === '/' || current.pathname === '') {
-      const fallback = `${current.origin}${LANDING_PATH}`;
-      window.sessionStorage.setItem(CAMPAIGN_URL_STORAGE_KEY, fallback);
-      return fallback;
+    if (stored && !hasStoredCampaignParams) {
+      window.sessionStorage.removeItem(CAMPAIGN_URL_STORAGE_KEY);
     }
 
-    const fallbackCurrent = buildCanonicalCampaignUrl(current);
-    window.sessionStorage.setItem(CAMPAIGN_URL_STORAGE_KEY, fallbackCurrent);
-    return fallbackCurrent;
+    return `${current.origin}${LANDING_PATH}`;
   } catch {
     return currentUrl;
   }
