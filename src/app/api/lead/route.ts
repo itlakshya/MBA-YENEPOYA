@@ -1,7 +1,13 @@
 import { after, NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { buildLeadSquaredAttributes, sendLeadSquaredCaptureIfNeeded } from '@/utils/lsq';
 import logger from '@/utils/logger';
 import { ensureLeadsTable, query } from '@/utils/db';
+import { 
+  parseTrackingParamsFromString, 
+  parseFirstTouchParamsFromString
+} from '@/utils/tracking';
+import { TRACKING_COOKIES } from '@/types/tracking';
 
 const LANDING_PATH = '/online-mba-course-yenepoyauniversity';
 const DEFAULT_SITE_ORIGIN = 'https://yenepoyaonline.com';
@@ -115,25 +121,39 @@ const resolveCampaignUrl = (params: {
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const { name, email, phone, experience, stage, pageUrl } = body;
+        const { name, email, phone, experience, stage, pageUrl, sourceUrl } = body;
 
         const host = req.headers.get('host') || 'unknown';
         const protocol = req.headers.get('x-forwarded-proto') || 'https';
         const siteOrigin =
             process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ||
             (host === 'unknown' ? DEFAULT_SITE_ORIGIN : `${protocol}://${host}`);
+        
+        // Build fallback conversion URL using existing logic
         const conversionRefUrl = resolveCampaignUrl({
             pageUrl,
             referer: req.headers.get('referer'),
             siteOrigin
         });
 
+        // Read tracking cookies (Next.js 16+ compatible)
+        const cookieStore = await cookies();
+        const latestTrackingCookie = cookieStore.get(TRACKING_COOKIES.LATEST)?.value;
+        const firstTouchTrackingCookie = cookieStore.get(TRACKING_COOKIES.FIRST_TOUCH)?.value;
+
+        // Parse tracking parameters from cookies
+        const trackingParams = latestTrackingCookie ? parseTrackingParamsFromString(latestTrackingCookie) : {};
+        const firstTrackingParams = firstTouchTrackingCookie ? parseFirstTouchParamsFromString(firstTouchTrackingCookie) : {};
+
         const attributes = buildLeadSquaredAttributes({
             name,
             email,
             mobile: phone,
             workExperience: experience,
-            conversionRefUrl
+            conversionRefUrl,
+            sourceUrl: sourceUrl || conversionRefUrl, // Use sourceUrl if provided by client
+            trackingParams,
+            firstTrackingParams
         });
 
         if (!attributes) {
@@ -142,7 +162,15 @@ export async function POST(req: NextRequest) {
 
         after(async () => {
             try {
-                await storeLead({ name, email, phone, experience, stage, source: conversionRefUrl });
+                // Store the sourceUrl or conversionRefUrl as the source
+                await storeLead({ 
+                    name, 
+                    email, 
+                    phone, 
+                    experience, 
+                    stage, 
+                    source: sourceUrl || conversionRefUrl 
+                });
             } catch (dbError) {
                 logger.error(dbError as Error, 'Database Lead Storage Error');
             }

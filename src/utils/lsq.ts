@@ -1,4 +1,14 @@
 import logger from "./logger";
+import { 
+  parseTrackingParamsFromString,
+  parseFirstTouchParamsFromString,
+  extractTrackingParams 
+} from '@/utils/tracking';
+import { 
+  TrackingParameters, 
+  FirstTouchTrackingParameters, 
+  LSQ_UTM_ATTRIBUTE_MAP 
+} from '@/types/tracking';
 
 export type LeadAttribute = { Attribute: string; Value: string };
 export type LeadRecord = Record<string, string | null>;
@@ -236,6 +246,9 @@ export const buildLeadSquaredAttributes = (params: {
     conversionRefUrl?: string | null;
     attendedScholarship?: boolean | null;
     lapSignInDate?: string | null;
+    trackingParams?: TrackingParameters | null;
+    firstTrackingParams?: FirstTouchTrackingParameters | null;
+    sourceUrl?: string | null;
 }) => {
     const phone = normalizePhoneForLsq(params.mobile);
     if (!phone) return null;
@@ -246,6 +259,30 @@ export const buildLeadSquaredAttributes = (params: {
 
     const lapSignInDate = formatLeadSquaredDateTime(params.lapSignInDate);
 
+    // Parse UTM parameters from multiple sources in order of precedence
+    let finalTrackingParams: TrackingParameters = {};
+    let finalFirstTouchParams: FirstTouchTrackingParameters = {};
+
+    // 1. Start with provided tracking params
+    if (params.trackingParams) {
+        finalTrackingParams = { ...finalTrackingParams, ...params.trackingParams };
+    }
+    if (params.firstTrackingParams) {
+        finalFirstTouchParams = { ...finalFirstTouchParams, ...params.firstTrackingParams };
+    }
+
+    // 2. Parse from sourceUrl if provided (highest precedence for conversion URL)
+    if (params.sourceUrl) {
+        const sourceUrlParams = extractTrackingParams(params.sourceUrl);
+        finalTrackingParams = { ...finalTrackingParams, ...sourceUrlParams };
+    }
+
+    // 3. Parse from conversionRefUrl as fallback
+    if (params.conversionRefUrl && !params.sourceUrl) {
+        const conversionUrlParams = extractTrackingParams(params.conversionRefUrl);
+        finalTrackingParams = { ...finalTrackingParams, ...conversionUrlParams };
+    }
+
     const attrs: LeadAttribute[] = [
         { Attribute: "FirstName", Value: firstName || "" },
         { Attribute: "LastName", Value: lastName || "" },
@@ -254,10 +291,26 @@ export const buildLeadSquaredAttributes = (params: {
         { Attribute: "mx_Highest_Education_Qualification", Value: params.eduQualificationName || "" },
         { Attribute: "mx_Work_Experience", Value: params.workExperience || "" },
         { Attribute: "mx_Branch", Value: params.examCenterName || "" },
-        { Attribute: "mx_Conversion_Ref_URL", Value: params.conversionRefUrl || "" },
+        { Attribute: "mx_Conversion_Ref_URL", Value: params.sourceUrl || params.conversionRefUrl || "" },
         ...(params.attendedScholarship ? [{ Attribute: "mx_Attended_Scholarship", Value: "Yes" }] : []),
         ...(lapSignInDate ? [{ Attribute: "mx_LAP_SignIn_Date", Value: lapSignInDate }] : [])
     ];
+
+    // Add current/latest UTM parameters
+    Object.entries(finalTrackingParams).forEach(([key, value]) => {
+        if (value && key in LSQ_UTM_ATTRIBUTE_MAP) {
+            const lsqAttribute = LSQ_UTM_ATTRIBUTE_MAP[key];
+            attrs.push({ Attribute: lsqAttribute, Value: value });
+        }
+    });
+
+    // Add first-touch UTM parameters
+    Object.entries(finalFirstTouchParams).forEach(([key, value]) => {
+        if (value && key in LSQ_UTM_ATTRIBUTE_MAP) {
+            const lsqAttribute = LSQ_UTM_ATTRIBUTE_MAP[key];
+            attrs.push({ Attribute: lsqAttribute, Value: value });
+        }
+    });
 
     return attrs.filter((a) => a.Value !== "");
 };

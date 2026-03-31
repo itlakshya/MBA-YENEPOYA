@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { sendGTMEvent } from '@next/third-parties/google';
+import { getEnhancedCampaignPageUrl } from '@/utils/client-tracking';
 
 const CAMPAIGN_URL_STORAGE_KEY = 'yenepoya_campaign_url';
 const LANDING_PATH = '/online-mba-course-yenepoyauniversity';
@@ -263,11 +264,12 @@ const CounsellingModal = ({
                     setIsLoading(true);
                     try {
                       const pageUrl = getCampaignPageUrl();
+                      const sourceUrl = getEnhancedCampaignPageUrl();
                       fetch('/api/lead', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         keepalive: true,
-                        body: JSON.stringify({ name, phone, stage: 'initial', pageUrl })
+                        body: JSON.stringify({ name, phone, stage: 'initial', pageUrl, sourceUrl })
                       }).catch((err) => {
                         console.error('Initial submission error:', err);
                       });
@@ -341,6 +343,7 @@ const CounsellingModal = ({
                     setIsLoading(true);
                     const siteKey = process.env.NEXT_PUBLIC_GOOGLE_RECAPTCHE_SITE_KEY;
                     const pageUrl = getCampaignPageUrl();
+                    const sourceUrl = getEnhancedCampaignPageUrl();
                     
                     const submitData = async (token?: string) => {
                       try {
@@ -348,7 +351,7 @@ const CounsellingModal = ({
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           keepalive: true,
-                          body: JSON.stringify({ name, email, phone, experience, token, stage: 'final', pageUrl })
+                          body: JSON.stringify({ name, email, phone, experience, token, stage: 'final', pageUrl, sourceUrl })
                         });
                         
                         sendGTMEvent({ 
