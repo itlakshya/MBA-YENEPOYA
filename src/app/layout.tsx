@@ -31,7 +31,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <GoogleTagManager gtmId="GTM-5XLDC59F" />
+      <GoogleTagManager gtmId="GTM-5JXR5Q35" />
       <Script
         src={`https://www.google.com/recaptcha/api.js?render=${process.env.NEXT_PUBLIC_GOOGLE_RECAPTCHE_SITE_KEY}`}
         strategy="afterInteractive"
@@ -41,7 +41,7 @@ export default function RootLayout({
       >
         <noscript>
           <iframe 
-            src="https://www.googletagmanager.com/ns.html?id=GTM-5XLDC59F"
+            src="https://www.googletagmanager.com/ns.html?id=GTM-5JXR5Q35"
             height="0" 
             width="0" 
             style={{ display: 'none', visibility: 'hidden' }}

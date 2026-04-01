@@ -1,63 +1,18 @@
-first_utm_adgroup
-mx_first_utm_adgroup
+1. Paste this code as high in the <head> of the page as possible:
+
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-5JXR5Q35');</script>
+<!-- End Google Tag Manager -->
 
 
-first_utm_campaign
-mx_first_utm_campaign
 
-    
-first_utm_content
-mx_first_utm_content
+2. Paste this code immediately after the opening <body> tag:
 
-     
-first_utm_device
-mx_first_utm_device
-
-
-first_utm_medium
-mx_first_utm_medium
-
-
-first_utm_region
-mx_first_utm_region
-
-
-first_utm_source
-mx_first_utm_source
-
-
-first_utm_term
-mx_first_utm_term
-
-
-utm_adgroup
-mx_utm_adgroup
-
-
-utm_campaign
-mx_utm_campaign
-
-
-utm_content
-mx_utm_content
-
-
-utm_device
-mx_utm_device
-
-
-utm_medium
-mx_utm_medium
-
-
-utm_region
-mx_utm_region
-
-
-utm_source
-mx_utm_source
-
-     
-
-utm_term
-mx_utm_term
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5JXR5Q35"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
