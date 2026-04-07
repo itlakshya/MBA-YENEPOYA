@@ -1073,7 +1073,7 @@ export default function Home() {
               />
           </div>
             <p className="text-sm leading-relaxed text-white/75 text-center md:text-left">
-              Disclaimer: IIC Lakshya act as a service partner only for MBA+CPA program. Jain University hold full rights to request change or removal of any non-relevant content for their MBA program. Images used are for illustrative purposes and do not directly represent the respective colleges or universities.
+              Disclaimer: IIC Lakshya act as a service partner only for MBA+CPA program. Yenepoya hold full rights to request change or removal of any non-relevant content for their MBA program. Images used are for illustrative purposes and do not directly represent the respective colleges or universities.
             </p>
           </div>
           <div className="flex flex-col md:items-end gap-2 text-sm text-white/60 font-medium">
